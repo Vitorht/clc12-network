@@ -1,3 +1,100 @@
+======================
+Instalando o terraform-docs
+======================
+curl -sSLo ./terraform-docs.tar.gz https://terraform-docs.io/dl/v0.19.0/terraform-docs-v0.19.0-$(uname)-amd64.tar.gz
+
+tar -xzf terraform-docs.tar.gz
+
+chmod +x terraform-docs
+
+sudo mv terraform-docs /usr/bin/terraform-docs
+
+terraform-docs --version
+
+rm -rf terraform-docs.tar.gz
+
+terraform-docs markdown . > README.md
+
+git add -A . 
+
+git commit -m "Update README"
+
+git push
+
+========================================================================================
+
+===========================
+CONSTRUÇÃO DO WORKFLOW
+===========================
+
+mkdir -p .github/workflows
+
+
+====================
+apply.yml
+====================
+
+name: Deploy Infra
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '.github/**'
+
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
+
+jobs:      
+  Apply:
+    name: 'Apply Changes'
+    runs-on: ubuntu-latest
+    environment: aws_credentials
+
+    defaults:
+      run:
+        shell: bash
+        
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      - name: Terraform Init
+        run: terraform init
+        
+      - name: Terraform Apply
+        run: terraform apply --auto-approve
+
+
+
+========================================
+aws_credentials
+
+AWS_ACCESS_KEY_ID
+
+AWS_SECRET_ACCESS_KEY
+
+AWS_SESSION_TOKEN
+
+
+git add -A . 
+
+git commit -m "Fix Workflow"
+
+git push
+
+
+==========================================
+destroy.yml
+==========================================
+
 name: Delete Infra
 on:
   workflow_dispatch:
@@ -36,3 +133,14 @@ jobs:
         - name: Destroy resources jobs
           id: destroy
           run: terraform destroy --auto-approve
+
+
+
+
+
+
+
+
+
+
+
